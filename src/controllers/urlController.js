@@ -1,7 +1,7 @@
 const urlModel = require('../models/urlModel')
 const mongoose = require("mongoose")
 const shortid = require('shortid')
-const validUrl = require('valid-url')
+//const validUrl = require('valid-url')
 
 
 /*### POST /url/shorten
@@ -13,7 +13,7 @@ const validUrl = require('valid-url')
 
 
 const createShortUrl = async (req,res) => {
-    const originalUrl = req.body
+    const originalUrl = req.body. longUrl
     const urlCode = shortid.generate(originalUrl)
     const shortUrl = "http://localhost:3000/"+urlCode
 
