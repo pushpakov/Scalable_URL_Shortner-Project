@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 
 mongoose
 .connect(
-    "mongodb+srv://pushpak:pushpak1819@radoncluster.opqe2.mongodb.net/group1Database?retryWrites=true&w=majority",
+    "mongodb+srv://pushpak:pushpak1819@radoncluster.opqe2.mongodb.net/group48Database?retryWrites=true&w=majority",
     {
       useNewUrlParser: true,
     }
