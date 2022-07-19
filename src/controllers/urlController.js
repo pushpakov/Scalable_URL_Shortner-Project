@@ -56,7 +56,7 @@ const createShortUrl = async (req, res) => {
 
         let uniqueUrl = await urlModel.findOne({ longUrl: output.longUrl }).select({ __v: 0, _id: 0 })
         if (uniqueUrl) {
-            return res.status(409).send({ status: true, message: "This url already exists", data: uniqueUrl })
+            return res.status(201).send({ status: true, message: "This url already exists", data: uniqueUrl })
         }
 
         const savedUrl = await urlModel.create(output)
