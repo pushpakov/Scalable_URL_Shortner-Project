@@ -79,30 +79,39 @@ const createShortUrl = async (req, res) => {
             output.shortUrl = shortUrl,
             output.urlCode = urlCode.trim().toLowerCase()
 
+            
+
         if (!validUrl.isUri(output.longUrl) && !url_valid(output.longUrl)) {
             return res.status(400).send({ status: false, message: "Provided Url is invalid" })
         }
 
+        const cahcedUrl = await GET_ASYNC(`${output.longUrl}`)
+        if (cahcedUrl) {
+            let urlData = JSON.parse(cahcedUrl)
 
-        
-
+            return res.status(201).send({ status: true, message: "This url already exists in cache memory", data: urlData })
+        }
 
         let uniqueUrl = await urlModel.findOne({ longUrl: output.longUrl }).select({ __v: 0, _id: 0 })
         if (uniqueUrl) {
             return res.status(201).send({ status: true, message: "This url already exists", data: uniqueUrl })
         }
 
-        const savedUrl = await urlModel.create(output)
+        const savedUrl = await urlModel.create(output) 
+
+        await SET_ASYNC(`${output.longUrl}`, JSON.stringify({output}))
 
         let saved = {
             longUrl: savedUrl.longUrl,
             shortUrl: savedUrl.shortUrl,
             urlCode: savedUrl.urlCode
         }
-            
-        return res.status(201).send({ status: true, data: saved })
+       
+            return res.status(201).send({ status: true, data: saved })
+        
+        
     }
-    
+
     catch (error) {
         res.status(500).send({ status: false, message: error.message })
     }
@@ -123,11 +132,12 @@ const redirectUrl = async (req, res) => {
             return res.status(302).redirect(urlData.longUrl)
         } else {
             const profile = await urlModel.findOne({ urlCode: urlCode });
+
             if(!profile){
                 return res.status(404).send({ status: false, message: "This urlCode is Invalid" })
             }
             if (profile) {
-
+                
                 await SET_ASYNC(`${urlCode}`, JSON.stringify(profile))
                 res.status(302).redirect(profile.longUrl);
             }
