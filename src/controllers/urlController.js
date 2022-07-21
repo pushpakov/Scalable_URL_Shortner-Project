@@ -63,7 +63,6 @@ const createShortUrl = async (req, res) => {
             return res.status(400).send({ status: false, message: "User need to provide Url" })
         }
 
-
         const urlCode = shortid.generate()
 
         const shortUrl = "http://localhost:3000/" + urlCode
@@ -82,38 +81,22 @@ const createShortUrl = async (req, res) => {
             return res.status(400).send({ status: false, message: "Provided Url is invalid" })
         }
 
-        const cahcedUrl = await GET_ASYNC(`${output.longUrl}`)
-        if (cahcedUrl) {
-            let urlData = JSON.parse(cahcedUrl)
-
-            return res.status(201).send({ status: true, message: "This url already exists in cache memory", data: urlData })
-        }
-
         let uniqueUrl = await urlModel.findOne({ longUrl: output.longUrl }).select({ __v: 0, _id: 0 })
         if (uniqueUrl) {
-            await SET_ASYNC(`${uniqueUrl.longUrl}`, JSON.stringify({uniqueUrl}))
             return res.status(201).send({ status: true, message: "This url already exists", data: uniqueUrl })
         }
 
         const savedUrl = await urlModel.create(output) 
-
-        await SET_ASYNC(`${output.longUrl}`, JSON.stringify({output}))
-
         let saved = {
             longUrl: savedUrl.longUrl,
             shortUrl: savedUrl.shortUrl,
             urlCode: savedUrl.urlCode
         }
-       
             return res.status(201).send({ status: true, data: saved })
-        
-        
     }
-
     catch (error) {
         res.status(500).send({ status: false, message: error.message })
     }
-
 }
 
 
