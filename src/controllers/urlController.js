@@ -15,15 +15,15 @@ const isValid = (value) => {
     }
 }
 
+
 const url_valid = function (url) {
     let regex = /^https?:\/\/.*\/.*\.\??.*$/gmi
     return regex.test(url)
 }
 
 
+/*######################################### Connecting to redis ###########################################*/
 
-
-//Connect to redis
 const redisClient = redis.createClient(
     15518,
     "redis-15518.c264.ap-south-1-1.ec2.cloud.redislabs.com",   
@@ -37,8 +37,7 @@ const redisClient = redis.createClient(
     console.log("Connected to Redis..");
   });
   
-  
-  
+
   //1. connect to the server
   //2. use the commands :
   
@@ -78,8 +77,6 @@ const createShortUrl = async (req, res) => {
             .join(""),
             output.shortUrl = shortUrl,
             output.urlCode = urlCode.trim().toLowerCase()
-
-            
 
         if (!validUrl.isUri(output.longUrl) && !url_valid(output.longUrl)) {
             return res.status(400).send({ status: false, message: "Provided Url is invalid" })
