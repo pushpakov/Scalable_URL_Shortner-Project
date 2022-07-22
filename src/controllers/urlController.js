@@ -125,6 +125,9 @@ const createShortUrl = async (req, res) => {
 const redirectUrl = async (req, res) => {
     try {
         let urlCode = req.params.urlCode
+        if(urlCode == ":urlCode"){
+            return res.status(400).send({ status: false, message: "Please enter Url code" })
+        }
 
         const cahcedUrl = await GET_ASYNC(`${urlCode}`)
         if (cahcedUrl) {
@@ -135,7 +138,7 @@ const redirectUrl = async (req, res) => {
             const profile = await urlModel.findOne({ urlCode: urlCode });
 
             if(!profile){
-                return res.status(404).send({ status: false, message: "This urlCode is Invalid" })
+                return res.status(404).send({ status: false, message: "The page with this urlCode is Not Found" })
             }
             if (profile) {
                 
