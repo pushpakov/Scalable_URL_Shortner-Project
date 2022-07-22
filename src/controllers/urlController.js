@@ -2,6 +2,8 @@ const urlModel = require('../models/urlModel')
 const mongoose = require("mongoose")
 const shortid = require('shortid') 
 const validUrl = require('valid-url')
+const redis = require("redis");
+const {promisify} = require("util");
 
 /*######################################### Validation Function ###########################################*/
 const isValid = (value) => {
@@ -18,6 +20,31 @@ const url_valid = function (url) {
 }
 
 
+
+
+//Connect to redis
+const redisClient = redis.createClient(
+    15518,
+    "redis-15518.c264.ap-south-1-1.ec2.cloud.redislabs.com",   
+    { no_ready_check: true }
+  );
+  redisClient.auth("8kxq0Xve9aJm5HMOPcE6iVT3iRsPECB1", function (err) {
+    if (err) throw err;
+  });
+  
+  redisClient.on("connect", async function () {
+    console.log("Connected to Redis..");
+  });
+  
+  
+  
+  //1. connect to the server
+  //2. use the commands :
+  
+  //Connection setup for redis
+
+const SET_ASYNC = promisify(redisClient.SET).bind(redisClient);
+const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
 
 
 /*######################################### POST /url/shorten ###########################################*/
@@ -55,19 +82,26 @@ const createShortUrl = async (req, res) => {
             return res.status(400).send({ status: false, message: "Provided Url is invalid" })
         }
 
+
+        
+
+
         let uniqueUrl = await urlModel.findOne({ longUrl: output.longUrl }).select({ __v: 0, _id: 0 })
         if (uniqueUrl) {
-            return res.status(409).send({ status: true, message: "This url already exists", data: uniqueUrl })
+            return res.status(201).send({ status: true, message: "This url already exists", data: uniqueUrl })
         }
 
         const savedUrl = await urlModel.create(output)
+
         let saved = {
             longUrl: savedUrl.longUrl,
             shortUrl: savedUrl.shortUrl,
             urlCode: savedUrl.urlCode
         }
+            
         return res.status(201).send({ status: true, data: saved })
     }
+    
     catch (error) {
         res.status(500).send({ status: false, message: error.message })
     }
@@ -81,14 +115,21 @@ const redirectUrl = async (req, res) => {
     try {
         let urlCode = req.params.urlCode
 
-        const urlData = await urlModel.findOne({ urlCode: urlCode })
-        if (!urlData) {
-            return res.status(404).send({ status: false, message: "This urlCode is Invalid" })
-        }
-        if (urlData) {
-            urlData.clicks++;
-            urlData.save();
-            return res.status(302).redirect(urlData.longUrl);
+        const cahcedUrl = await GET_ASYNC(`${urlCode}`)
+        if (cahcedUrl) {
+            let urlData = JSON.parse(cahcedUrl)
+
+            return res.status(302).redirect(urlData.longUrl)
+        } else {
+            const profile = await urlModel.findOne({ urlCode: urlCode });
+            if(!profile){
+                return res.status(404).send({ status: false, message: "This urlCode is Invalid" })
+            }
+            if (profile) {
+
+                await SET_ASYNC(`${urlCode}`, JSON.stringify(profile))
+                res.status(302).redirect(profile.longUrl);
+            }
         }
     }
     catch (error) {
