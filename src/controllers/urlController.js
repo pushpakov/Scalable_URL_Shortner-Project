@@ -81,7 +81,7 @@ const createShortUrl = async (req, res) => {
             output.shortUrl = shortUrl,
             output.urlCode = urlCode.trim().toLowerCase()
 
-        if (!validUrl.isUri(output.longUrl) && !url_valid(output.longUrl)) {
+        if (!validUrl.isUri(output.longUrl) || !url_valid(output.longUrl)) {
             return res.status(400).send({ status: false, message: "Provided Url is invalid" })
         }
 
