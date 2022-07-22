@@ -52,6 +52,9 @@ const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
 const createShortUrl = async (req, res) => {
     try {
         const originalUrl = req.body.longUrl
+        if (!originalUrl){
+            return res.status(400).send({ status: false, message: "User need to provide Url" })
+        }
 
         if (Object.keys(originalUrl).length == 0) {
             return res
